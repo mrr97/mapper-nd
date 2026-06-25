@@ -9,8 +9,9 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 
-**Status:** Phase 1 of 5 complete (repo scaffold + datasets). The Mapper engine, the
-interactive visualiser and the diabetes case study land in the phases below.
+**Status:** Phases 1–2 of 5 complete — datasets and the **Mapper engine** (filters, cover,
+nerve) are in place and tested on known shapes. The interactive visualiser and the diabetes
+case study land in the phases below.
 
 ---
 
@@ -50,6 +51,28 @@ uv run mapper-nd datasets    # list the bundled datasets and their shapes
 The synthetic manifolds are the **ground truth** for validating the algorithm (Phase 4):
 the recovered topology must match the known shape.
 
+## The engine
+
+The pipeline is configurable: pick a **filter**, a **cover** and a **clusterer**, then `fit`.
+
+```python
+from sklearn.cluster import DBSCAN
+from mapper_nd.core import Mapper, HypercubeCover, GraphLaplacian
+from mapper_nd.datasets import sphere
+
+mapper = Mapper(
+    filter=GraphLaplacian(kernel="rbf", n_components=2),  # project to R^2
+    cover=HypercubeCover(n_intervals=5, overlap=0.5),     # overlapping squares
+    clusterer=DBSCAN(eps=0.4, min_samples=3),
+)
+result = mapper.fit(sphere(300))
+print(result.complex.simplex_counts())      # e.g. {0: 20, 1: 67, 2: 65, 3: 17}
+print(result.complex.n_connected_components())
+```
+
+Because the lens is 2-dimensional, the nerve contains **triangles and tetrahedra**, not just
+edges. Filters available: `Projection`, `Eccentricity`, `Statistic`, `GraphLaplacian`.
+
 ## Project layout
 
 ```
@@ -57,6 +80,7 @@ src/mapper_nd/
   config.py          # Pydantic settings (.env)
   log.py             # structlog setup
   datasets/          # reproducible point clouds + the diabetes study
+  core/              # the Mapper engine: filters, cover, complex (nerve), mapper
   cli.py             # typer CLI
 tests/               # pytest
 data/diabetes.csv    # Reaven & Miller (1979), bundled
@@ -65,7 +89,7 @@ data/diabetes.csv    # Reaven & Miller (1979), bundled
 ## Roadmap
 
 - [x] **F1** — Repo scaffold + datasets (synthetic clouds + diabetes study)
-- [ ] **F2** — Core library: Mapper from scratch (filters, cover, nerve), arbitrary-dim Rⁿ
+- [x] **F2** — Core library: Mapper from scratch (filters, cover, nerve), arbitrary-dim Rⁿ
 - [ ] **F3** — Interactive Dash/Plotly app: build the simplicial complex live in 2D/3D
 - [ ] **F4** — Validation: recovered topology vs. known shape + the diabetes case study
 - [ ] **F5** — README polish + CI + Docker, wired end to end

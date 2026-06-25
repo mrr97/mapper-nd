@@ -9,6 +9,7 @@ authors = [{ name = "Miguel Roldán Rodríguez" }]
 dependencies = [
     "numpy>=2.0",
     "pandas>=2.2",
+    "scikit-learn>=1.5",
     "pydantic>=2.7",
     "pydantic-settings>=2.4",
     "structlog>=24.4",
