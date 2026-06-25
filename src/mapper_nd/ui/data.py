@@ -57,11 +57,14 @@ def _diabetes(s: Settings) -> tuple[np.ndarray, list[str] | None]:
     return data.points, data.labels
 
 
+# Presets tuned in F4 so each dataset opens at the parameters that recover its known
+# topology (see mapper_nd.validation): circle -> one loop, sphere -> one void,
+# torus -> two loops, diabetes -> a connected tree (core + two diabetic flares).
 DATASETS: dict[str, DatasetSpec] = {
     "circle": DatasetSpec(_circle, "Projection (1D)", 10, 0.4, 0.35, 3, 2),
-    "torus": DatasetSpec(_torus, "Graph Laplacian (2D)", 8, 0.5, 0.5, 3, 3),
-    "sphere": DatasetSpec(_sphere, "Graph Laplacian (2D)", 5, 0.5, 0.45, 3, 3),
-    "diabetes": DatasetSpec(_diabetes, "Statistic (sum)", 8, 0.6, 0.8, 2, 2),
+    "torus": DatasetSpec(_torus, "Graph Laplacian (2D)", 6, 0.5, 0.36, 4, 3),
+    "sphere": DatasetSpec(_sphere, "Graph Laplacian (2D)", 4, 0.5, 0.55, 3, 3),
+    "diabetes": DatasetSpec(_diabetes, "Statistic (sum)", 8, 0.7, 1.4, 2, 2),
 }
 
 FILTERS: dict[str, Callable[[], Filter]] = {
@@ -151,4 +154,19 @@ def run_mapper(
         embedding_dim=embedding_dim,
         colorings=colorings,
         stats=stats,
+    )
+
+
+def run_preset(dataset: str, settings: Settings | None = None) -> MapperRun:
+    """Run a dataset at its tuned default preset (what the dashboard opens with)."""
+    spec = DATASETS[dataset]
+    return run_mapper(
+        dataset,
+        filter_name=spec.filter_name,
+        n_intervals=spec.n_intervals,
+        overlap=spec.overlap,
+        eps=spec.eps,
+        min_samples=spec.min_samples,
+        embedding_dim=spec.embedding_dim,
+        settings=settings,
     )

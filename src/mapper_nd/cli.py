@@ -51,6 +51,30 @@ def datasets() -> None:
 
 
 @app.command()
+def validate() -> None:
+    """Check that Mapper recovers each dataset's known topology (Betti signature)."""
+    settings = get_settings()
+    configure_logging(level=settings.log_level, json_logs=settings.json_logs)
+
+    from mapper_nd.validation import validate_all
+
+    results = validate_all(settings)
+
+    typer.echo("")
+    typer.echo(f"{'dataset':<12}{'recovered topology':<34}{'Betti':<22}{'result'}")
+    for r in results:
+        betti = " ".join(f"b{d}={v}" for d, v in sorted(r.betti.items()))
+        mark = "PASS" if r.passed else "FAIL"
+        typer.echo(f"{r.dataset:<12}{r.description:<34}{betti:<22}{mark}")
+    typer.echo("")
+
+    passed = sum(r.passed for r in results)
+    typer.echo(f"{passed}/{len(results)} datasets recovered their signature topology.")
+    if passed != len(results):
+        raise typer.Exit(code=1)
+
+
+@app.command()
 def dashboard() -> None:
     """Launch the interactive Dash app: build a Mapper complex and view it in 2D/3D."""
     settings = get_settings()
