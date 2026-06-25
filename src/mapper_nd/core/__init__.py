@@ -2,6 +2,7 @@
 
 from mapper_nd.core.complex import SimplicialComplex, Vertex
 from mapper_nd.core.cover import HypercubeCover
+from mapper_nd.core.embedding import embed_vertices, vertex_distance_matrix
 from mapper_nd.core.filters import Eccentricity, Filter, GraphLaplacian, Projection, Statistic
 from mapper_nd.core.mapper import Mapper, MapperResult
 
@@ -16,4 +17,6 @@ __all__ = [
     "SimplicialComplex",
     "Statistic",
     "Vertex",
+    "embed_vertices",
+    "vertex_distance_matrix",
 ]

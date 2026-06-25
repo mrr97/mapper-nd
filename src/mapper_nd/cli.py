@@ -50,5 +50,20 @@ def datasets() -> None:
     typer.echo("")
 
 
+@app.command()
+def dashboard() -> None:
+    """Launch the interactive Dash app: build a Mapper complex and view it in 2D/3D."""
+    settings = get_settings()
+    configure_logging(level=settings.log_level, json_logs=settings.json_logs)
+
+    from mapper_nd.ui.app import create_app
+
+    app_ = create_app(settings)
+    typer.echo("")
+    typer.echo(f"Dashboard running at http://{settings.ui_host}:{settings.ui_port}")
+    typer.echo("Press Ctrl+C to stop.")
+    app_.run(host=settings.ui_host, port=settings.ui_port, debug=False)
+
+
 if __name__ == "__main__":
     app()

@@ -20,6 +20,13 @@ class Settings(BaseSettings):
     torus_points: int = 600
     sphere_points: int = 400
 
+    # Geometric realisation: MDS seed so the drawn layout is reproducible.
+    mds_seed: int = 42
+
+    # Dash UI
+    ui_host: str = "127.0.0.1"
+    ui_port: int = 8050
+
     # Logging
     log_level: str = "INFO"
     json_logs: bool = False

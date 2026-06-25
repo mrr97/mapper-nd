@@ -9,9 +9,9 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 
-**Status:** Phases 1–2 of 5 complete — datasets and the **Mapper engine** (filters, cover,
-nerve) are in place and tested on known shapes. The interactive visualiser and the diabetes
-case study land in the phases below.
+**Status:** Phases 1–3 of 5 complete — datasets, the **Mapper engine** (filters, cover,
+nerve), and an **interactive Dash app** that builds the simplicial complex live in 2D/3D.
+Topological validation and the diabetes case study land in the phases below.
 
 ---
 
@@ -73,6 +73,19 @@ print(result.complex.n_connected_components())
 Because the lens is 2-dimensional, the nerve contains **triangles and tetrahedra**, not just
 edges. Filters available: `Projection`, `Eccentricity`, `Statistic`, `GraphLaplacian`.
 
+## Interactive app
+
+Pick a dataset, tune the filter / cover / clustering controls, and watch the simplicial
+complex rebuild — in 2D or embedded in 3D, where triangles and tetrahedra are rendered as
+surfaces and volumes. It opens on the **diabetes study**, coloured by clinical group.
+
+```bash
+uv run mapper-nd dashboard    # http://127.0.0.1:8050
+```
+
+Vertices are positioned by multidimensional scaling of a Hausdorff-like distance between
+clusters; colours follow the thesis convention (edges black, triangles blue, tetrahedra red).
+
 ## Project layout
 
 ```
@@ -80,7 +93,8 @@ src/mapper_nd/
   config.py          # Pydantic settings (.env)
   log.py             # structlog setup
   datasets/          # reproducible point clouds + the diabetes study
-  core/              # the Mapper engine: filters, cover, complex (nerve), mapper
+  core/              # the Mapper engine: filters, cover, complex (nerve), mapper, embedding
+  ui/                # Dash app: data orchestration, Plotly figures, layout
   cli.py             # typer CLI
 tests/               # pytest
 data/diabetes.csv    # Reaven & Miller (1979), bundled
@@ -90,7 +104,7 @@ data/diabetes.csv    # Reaven & Miller (1979), bundled
 
 - [x] **F1** — Repo scaffold + datasets (synthetic clouds + diabetes study)
 - [x] **F2** — Core library: Mapper from scratch (filters, cover, nerve), arbitrary-dim Rⁿ
-- [ ] **F3** — Interactive Dash/Plotly app: build the simplicial complex live in 2D/3D
+- [x] **F3** — Interactive Dash/Plotly app: build the simplicial complex live in 2D/3D
 - [ ] **F4** — Validation: recovered topology vs. known shape + the diabetes case study
 - [ ] **F5** — README polish + CI + Docker, wired end to end
 
