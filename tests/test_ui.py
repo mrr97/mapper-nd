@@ -86,6 +86,13 @@ def test_build_figure_2d_returns_a_plotly_figure():
     assert len(fig.data) > 0
 
 
+def test_render_modes_all_build():
+    run = _small_run()
+    for render in ("skeleton", "surface", "solid"):
+        fig = build_figure(run, coloring="Filter value", render=render)
+        assert isinstance(fig, go.Figure)
+
+
 def test_build_figure_3d_with_graph_laplacian_lens():
     run = run_mapper(
         "sphere",

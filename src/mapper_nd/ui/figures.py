@@ -50,8 +50,14 @@ def _edge_coords(run: MapperRun, coords: np.ndarray, index: dict[int, int], dim:
     return axes
 
 
-def build_figure(run: MapperRun, *, coloring: str) -> go.Figure:
-    """Build the Plotly figure for the current Mapper run and chosen vertex colouring."""
+def build_figure(run: MapperRun, *, coloring: str, render: str = "surface") -> go.Figure:
+    """Build the Plotly figure for the current Mapper run and chosen vertex colouring.
+
+    ``render`` controls how much of the complex is filled in:
+    ``"skeleton"`` draws only vertices and edges, ``"surface"`` adds triangles (the
+    2-skeleton — best for seeing a torus hole or a sphere shell), and ``"solid"`` also fills
+    tetrahedra, showing the highest-dimensional simplices.
+    """
     vids, coords, index = _positions_array(run)
     fig = go.Figure()
     if not vids:
@@ -62,9 +68,9 @@ def build_figure(run: MapperRun, *, coloring: str) -> go.Figure:
     dim = run.embedding_dim
 
     if dim == 3:
-        _build_3d(fig, run, coords, index, values, categorical, coloring)
+        _build_3d(fig, run, coords, index, values, categorical, coloring, render)
     else:
-        _build_2d(fig, run, coords, index, values, categorical, coloring)
+        _build_2d(fig, run, coords, index, values, categorical, coloring, render)
 
     fig.update_layout(
         margin={"t": 30, "r": 10, "b": 10, "l": 10},
@@ -75,21 +81,22 @@ def build_figure(run: MapperRun, *, coloring: str) -> go.Figure:
     return fig
 
 
-def _build_2d(fig, run, coords, index, values, categorical, coloring) -> None:
+def _build_2d(fig, run, coords, index, values, categorical, coloring, render) -> None:
     ex, ey = _edge_coords(run, coords, index, 2)
     fig.add_scatter(x=ex, y=ey, mode="lines", line={"color": _EDGE, "width": 1}, hoverinfo="skip")
-    for tri in run.complex.simplices.get(2, ()):
-        pts = [index[v] for v in tri]
-        loop = [*pts, pts[0]]  # close the triangle
-        fig.add_scatter(
-            x=coords[loop, 0],
-            y=coords[loop, 1],
-            mode="lines",
-            fill="toself",
-            fillcolor="rgba(37,99,235,0.15)",
-            line={"width": 0},
-            hoverinfo="skip",
-        )
+    if render in ("surface", "solid"):
+        for tri in run.complex.simplices.get(2, ()):
+            pts = [index[v] for v in tri]
+            loop = [*pts, pts[0]]  # close the triangle
+            fig.add_scatter(
+                x=coords[loop, 0],
+                y=coords[loop, 1],
+                mode="lines",
+                fill="toself",
+                fillcolor="rgba(37,99,235,0.15)",
+                line={"width": 0},
+                hoverinfo="skip",
+            )
     fig.add_scatter(
         x=coords[:, 0],
         y=coords[:, 1],
@@ -102,43 +109,46 @@ def _build_2d(fig, run, coords, index, values, categorical, coloring) -> None:
     fig.update_yaxes(visible=False)
 
 
-def _build_3d(fig, run, coords, index, values, categorical, coloring) -> None:
-    triangles = [tuple(index[v] for v in tri) for tri in run.complex.simplices.get(2, ())]
-    if triangles:
-        tri = np.array(triangles)
-        fig.add_mesh3d(
-            x=coords[:, 0],
-            y=coords[:, 1],
-            z=coords[:, 2],
-            i=tri[:, 0],
-            j=tri[:, 1],
-            k=tri[:, 2],
-            color=_TRI,
-            opacity=0.25,
-            hoverinfo="skip",
-        )
-    tetra_faces = []
-    for tet in run.complex.simplices.get(3, ()):
-        p = [index[v] for v in tet]
-        tetra_faces += [
-            (p[0], p[1], p[2]),
-            (p[0], p[1], p[3]),
-            (p[0], p[2], p[3]),
-            (p[1], p[2], p[3]),
-        ]
-    if tetra_faces:
-        tf = np.array(tetra_faces)
-        fig.add_mesh3d(
-            x=coords[:, 0],
-            y=coords[:, 1],
-            z=coords[:, 2],
-            i=tf[:, 0],
-            j=tf[:, 1],
-            k=tf[:, 2],
-            color=_TET,
-            opacity=0.18,
-            hoverinfo="skip",
-        )
+def _build_3d(fig, run, coords, index, values, categorical, coloring, render) -> None:
+    if render in ("surface", "solid"):
+        triangles = [tuple(index[v] for v in tri) for tri in run.complex.simplices.get(2, ())]
+        if triangles:
+            tri = np.array(triangles)
+            fig.add_mesh3d(
+                x=coords[:, 0],
+                y=coords[:, 1],
+                z=coords[:, 2],
+                i=tri[:, 0],
+                j=tri[:, 1],
+                k=tri[:, 2],
+                color=_TRI,
+                opacity=0.12,
+                flatshading=True,
+                hoverinfo="skip",
+            )
+    if render == "solid":
+        tetra_faces = []
+        for tet in run.complex.simplices.get(3, ()):
+            p = [index[v] for v in tet]
+            tetra_faces += [
+                (p[0], p[1], p[2]),
+                (p[0], p[1], p[3]),
+                (p[0], p[2], p[3]),
+                (p[1], p[2], p[3]),
+            ]
+        if tetra_faces:
+            tf = np.array(tetra_faces)
+            fig.add_mesh3d(
+                x=coords[:, 0],
+                y=coords[:, 1],
+                z=coords[:, 2],
+                i=tf[:, 0],
+                j=tf[:, 1],
+                k=tf[:, 2],
+                color=_TET,
+                opacity=0.1,
+                hoverinfo="skip",
+            )
     ex, ey, ez = _edge_coords(run, coords, index, 3)
     fig.add_scatter3d(
         x=ex, y=ey, z=ez, mode="lines", line={"color": _EDGE, "width": 2}, hoverinfo="skip"

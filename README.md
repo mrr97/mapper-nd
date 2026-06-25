@@ -86,6 +86,9 @@ uv run mapper-nd dashboard    # http://127.0.0.1:8050
 
 Vertices are positioned by multidimensional scaling of a Hausdorff-like distance between
 clusters; colours follow the thesis convention (edges black, triangles blue, tetrahedra red).
+A **Render** control switches between *skeleton* (nodes + edges — clearest for seeing a
+torus hole), *surface* (adds triangles — a sphere shell), and *solid* (adds tetrahedra —
+the highest-dimensional simplices).
 
 ## Validation — does it recover the shape?
 

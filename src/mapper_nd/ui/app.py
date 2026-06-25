@@ -82,6 +82,19 @@ def _controls(default: str) -> html.Div:
                     clearable=False,
                 ),
             ),
+            _control(
+                "Render",
+                dcc.Dropdown(
+                    id="render",
+                    options=[
+                        {"label": "Skeleton (nodes + edges)", "value": "skeleton"},
+                        {"label": "Surface (+ triangles)", "value": "surface"},
+                        {"label": "Solid (+ tetrahedra)", "value": "solid"},
+                    ],
+                    value=spec.render,
+                    clearable=False,
+                ),
+            ),
         ],
     )
 
@@ -129,6 +142,7 @@ def create_app(settings: Settings | None = None) -> Dash:
         Output("embedding-dim", "value"),
         Output("coloring", "options"),
         Output("coloring", "value"),
+        Output("render", "value"),
         Input("dataset", "value"),
         prevent_initial_call=True,
     )
@@ -145,6 +159,7 @@ def create_app(settings: Settings | None = None) -> Dash:
             spec.embedding_dim,
             options,
             coloring,
+            spec.render,
         )
 
     @app.callback(
@@ -158,9 +173,18 @@ def create_app(settings: Settings | None = None) -> Dash:
         Input("min-samples", "value"),
         Input("embedding-dim", "value"),
         Input("coloring", "value"),
+        Input("render", "value"),
     )
     def _update(
-        dataset, filter_name, n_intervals, overlap, eps, min_samples, embedding_dim, coloring
+        dataset,
+        filter_name,
+        n_intervals,
+        overlap,
+        eps,
+        min_samples,
+        embedding_dim,
+        coloring,
+        render,
     ):
         run = run_mapper(
             dataset,
@@ -179,7 +203,7 @@ def create_app(settings: Settings | None = None) -> Dash:
             f"{s['vertices']} vertices · {s['edges']} edges · {s['triangles']} triangles · "
             f"{s['components']} components · complex dimension {s['dimension']}"
         )
-        return build_figure(run, coloring=coloring), stats
+        return build_figure(run, coloring=coloring, render=render), stats
 
     return app
 
