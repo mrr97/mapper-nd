@@ -62,7 +62,7 @@ def _diabetes(s: Settings) -> tuple[np.ndarray, list[str] | None]:
 # torus -> two loops, diabetes -> a connected tree (core + two diabetic flares).
 DATASETS: dict[str, DatasetSpec] = {
     "circle": DatasetSpec(_circle, "Projection (1D)", 10, 0.4, 0.35, 3, 2),
-    "torus": DatasetSpec(_torus, "Graph Laplacian (2D)", 6, 0.5, 0.36, 4, 3),
+    "torus": DatasetSpec(_torus, "Graph Laplacian (2D)", 5, 0.7, 0.8, 4, 3),
     "sphere": DatasetSpec(_sphere, "Graph Laplacian (2D)", 4, 0.5, 0.55, 3, 3),
     "diabetes": DatasetSpec(_diabetes, "Statistic (sum)", 8, 0.7, 1.4, 2, 2),
 }

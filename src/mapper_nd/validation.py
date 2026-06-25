@@ -6,11 +6,11 @@ check, automatically and honestly, that the pipeline reconstructs the right shap
 
 - circle   -> b0 = 1, b1 = 1   (one connected loop)
 - sphere   -> b0 = 1, b2 = 1   (a hollow shell, one enclosed void)
-- torus    -> b1 = 2           (two independent loops — the torus signature)
+- torus    -> b0 = 1, b1 = 2   (one connected surface with two independent loops)
 - diabetes -> b0 = 1, b1 = 0   (a connected tree: a core with two diabetic flares)
 
-Mapper is an approximation, so the torus is checked on its signature (b1 = 2) rather than
-its full Betti vector — the reconstruction recovers both loops but is noisier elsewhere.
+Mapper is an approximation, so the torus is checked on its signature (connected, two loops)
+rather than its full Betti vector — recovering ``b2 = 1`` as well needs denser sampling.
 """
 
 from __future__ import annotations
@@ -45,7 +45,7 @@ class ValidationResult:
 CASES: tuple[ValidationCase, ...] = (
     ValidationCase("circle", "one connected loop", {0: 1, 1: 1}),
     ValidationCase("sphere", "a hollow shell (one void)", {0: 1, 1: 0, 2: 1}),
-    ValidationCase("torus", "two independent loops", {1: 2}),
+    ValidationCase("torus", "connected, two independent loops", {0: 1, 1: 2}),
     ValidationCase("diabetes", "a connected tree (core + two flares)", {0: 1, 1: 0}),
 )
 

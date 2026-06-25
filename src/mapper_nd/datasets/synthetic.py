@@ -35,7 +35,12 @@ def torus(
     noise: float = 0.0,
     seed: int = 42,
 ) -> np.ndarray:
-    """Points on the surface of a torus S^1 x S^1 in R^3.
+    """Points sampled uniformly over the surface of a torus S^1 x S^1 in R^3.
+
+    Sampling is uniform by surface *area*, not by angle: the outer rim of a torus has more
+    area than the inner rim, so the tube angle is accepted with probability proportional to
+    ``(R + r cos phi)``. Even density matters for Mapper — angle-uniform sampling crowds the
+    inner rim and fragments the reconstruction.
 
     Args:
         n_points: Number of points to sample.
@@ -48,8 +53,18 @@ def torus(
         Array of shape (n_points, 3).
     """
     rng = np.random.default_rng(seed)
-    theta = rng.uniform(0.0, 2.0 * np.pi, size=n_points)  # around the torus centre
-    phi = rng.uniform(0.0, 2.0 * np.pi, size=n_points)  # around the tube
+    theta_acc: list[float] = []
+    phi_acc: list[float] = []
+    while len(theta_acc) < n_points:
+        theta = rng.uniform(0.0, 2.0 * np.pi, size=n_points)  # around the torus centre
+        phi = rng.uniform(0.0, 2.0 * np.pi, size=n_points)  # around the tube
+        u = rng.uniform(0.0, 1.0, size=n_points)
+        keep = u <= (major_radius + minor_radius * np.cos(phi)) / (major_radius + minor_radius)
+        theta_acc.extend(theta[keep])
+        phi_acc.extend(phi[keep])
+    theta = np.array(theta_acc[:n_points])
+    phi = np.array(phi_acc[:n_points])
+
     x = (major_radius + minor_radius * np.cos(phi)) * np.cos(theta)
     y = (major_radius + minor_radius * np.cos(phi)) * np.sin(theta)
     z = minor_radius * np.sin(phi)

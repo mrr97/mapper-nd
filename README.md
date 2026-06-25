@@ -102,12 +102,14 @@ uv run mapper-nd validate
 |---------|-----------|-----------------|:------:|
 | `circle` | one connected loop | `b0=1, b1=1` | ✅ |
 | `sphere` | a hollow shell (one void) | `b0=1, b1=0, b2=1` | ✅ |
-| `torus` | two independent loops | `b1=2` | ✅ |
+| `torus` | connected, two loops | `b0=1, b1=2` | ✅ |
 | `diabetes` | connected tree (core + two flares) | `b0=1, b1=0` | ✅ |
 
-Mapper is an approximation, so the torus is judged on its **signature** — it recovers both
-loops (`b1=2`), the feature that distinguishes a torus, though the reconstruction is noisier
-in the other dimensions. The presets shipped with the app are exactly these validated ones.
+Mapper is an approximation, so the torus is judged on its **signature** — a single connected
+surface carrying both loops (`b0=1, b1=2`), the feature that distinguishes a torus;
+recovering the enclosed void (`b2=1`) as well would need denser sampling. Clean reconstruction
+here relies on sampling the torus uniformly **by surface area**, not by angle. The presets
+shipped with the app are exactly these validated ones.
 
 ### The diabetes result
 
