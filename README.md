@@ -15,10 +15,10 @@ void, a torus its two loops — and the **Reaven–Miller diabetes study** recon
 connected tree whose two branches are the two diabetes subtypes. One command (`docker compose
 up`) validates the topology and serves the interactive app.
 
-![Mapper on the Reaven–Miller diabetes study: a connected core with two flares, coloured by clinical group — the red core and the two coloured branches are the two diabetes subtypes](docs/diabetes.png)
+![Rotating the 3D simplicial complex, switching datasets, and tuning the cover/clustering controls live in the dashboard](docs/mapper-demo.gif)
 
-> The headline demo, straight from the bundled dataset. Regenerate it with
-> `uv run python scripts/render_hero.py`.
+> The interactive dashboard: pick a dataset, rotate the complex in 3D, and watch it
+> rebuild as you tune the controls. `uv run mapper-nd dashboard` (or `docker compose up`).
 
 ---
 
@@ -86,8 +86,6 @@ Pick a dataset, tune the filter / cover / clustering controls, and watch the sim
 complex rebuild — in 2D or embedded in 3D, where triangles and tetrahedra are rendered as
 surfaces and volumes. It opens on the **diabetes study**, coloured by clinical group.
 
-![Rotating the 3D simplicial complex, switching datasets, and tuning the controls live in the dashboard](docs/mapper-demo.gif)
-
 ```bash
 uv run mapper-nd dashboard    # http://127.0.0.1:8050
 ```
@@ -135,6 +133,10 @@ two flares, each a different diabetes subtype. Mapper reconstructs precisely tha
 **connected tree** (`b0=1, b1=0`) whose branches, coloured by clinical group, separate
 **Normal** from the **Chemical** and **Overt** diabetics — recovering the disease structure
 straight from the blood-chemistry cloud.
+
+![Mapper on the Reaven–Miller diabetes study: a connected core with two flares, coloured by clinical group — the red core and the two coloured branches are the two diabetes subtypes](docs/diabetes.png)
+
+> Regenerate this figure with `uv run python scripts/render_hero.py`.
 
 ## Project layout
 
