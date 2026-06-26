@@ -65,7 +65,7 @@ DATASETS: dict[str, DatasetSpec] = {
     "circle": DatasetSpec(_circle, "Projection (1D)", 10, 0.4, 0.35, 3, 2, "skeleton"),
     "torus": DatasetSpec(_torus, "Graph Laplacian (2D)", 5, 0.7, 0.8, 4, 3, "solid"),
     "sphere": DatasetSpec(_sphere, "Graph Laplacian (2D)", 4, 0.5, 0.55, 3, 3, "surface"),
-    "diabetes": DatasetSpec(_diabetes, "Statistic (sum)", 8, 0.7, 1.4, 2, 2, "skeleton"),
+    "diabetes": DatasetSpec(_diabetes, "Statistic (sum)", 8, 0.7, 1.4, 2, 3, "skeleton"),
 }
 
 FILTERS: dict[str, Callable[[], Filter]] = {
