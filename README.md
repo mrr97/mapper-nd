@@ -5,15 +5,20 @@
 > **graph**. This one filters to an **arbitrary-dimensional space Rⁿ**, so the output is a
 > full **simplicial complex** (edges, triangles, tetrahedra, …), not just a 1-skeleton.
 
-![CI](https://img.shields.io/badge/CI-ruff%20%2B%20pytest-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Python](https://img.shields.io/badge/python-3.12-blue)
+[![CI](https://github.com/mrr97/mapper-nd/actions/workflows/ci.yml/badge.svg)](https://github.com/mrr97/mapper-nd/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
 
 **Status:** Complete. The engine recovers the **known topology** of every
 bundled dataset (verified by computing Betti numbers): a circle gives one loop, a sphere one
 void, a torus its two loops — and the **Reaven–Miller diabetes study** reconstructs as a
 connected tree whose two branches are the two diabetes subtypes. One command (`docker compose
 up`) validates the topology and serves the interactive app.
+
+![Mapper on the Reaven–Miller diabetes study: a connected core with two flares, coloured by clinical group — the red core and the two coloured branches are the two diabetes subtypes](docs/diabetes.png)
+
+> The headline demo, straight from the bundled dataset. Regenerate it with
+> `uv run python scripts/render_hero.py`.
 
 ---
 
