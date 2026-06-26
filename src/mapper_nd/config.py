@@ -4,6 +4,11 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Project root (two levels up from this file: src/mapper_nd/config.py -> repo root).
+# Default data paths are anchored here so they resolve regardless of the working
+# directory the app is launched from (e.g. inside Docker or from another folder).
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
 
 class Settings(BaseSettings):
     """Central configuration. Every value can be overridden via env vars or `.env`."""
@@ -11,8 +16,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     # Where datasets live (synthetic point clouds + the bundled diabetes study).
-    data_dir: Path = Path("data")
-    diabetes_path: Path = Path("data/diabetes.csv")
+    data_dir: Path = _PROJECT_ROOT / "data"
+    diabetes_path: Path = _PROJECT_ROOT / "data" / "diabetes.csv"
 
     # Reproducible synthetic point clouds. A single seed makes every cloud deterministic.
     cloud_seed: int = 42
