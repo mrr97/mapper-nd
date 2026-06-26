@@ -28,3 +28,6 @@ jobs:
 
       - name: Run tests
         run: uv run pytest
+
+      - name: Validate topology recovery (end to end)
+        run: uv run mapper-nd validate

@@ -9,10 +9,11 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 
-**Status:** Phases 1–4 of 5 complete. The engine recovers the **known topology** of every
+**Status:** Complete. The engine recovers the **known topology** of every
 bundled dataset (verified by computing Betti numbers): a circle gives one loop, a sphere one
 void, a torus its two loops — and the **Reaven–Miller diabetes study** reconstructs as a
-connected tree whose two branches are the two diabetes subtypes.
+connected tree whose two branches are the two diabetes subtypes. One command (`docker compose
+up`) validates the topology and serves the interactive app.
 
 ---
 
@@ -84,6 +85,12 @@ surfaces and volumes. It opens on the **diabetes study**, coloured by clinical g
 uv run mapper-nd dashboard    # http://127.0.0.1:8050
 ```
 
+Or with Docker — one command validates the topology of all four datasets, then serves the app:
+
+```bash
+docker compose up    # validates 4/4 signatures, then http://localhost:8050
+```
+
 Vertices are positioned by multidimensional scaling of a Hausdorff-like distance between
 clusters; colours follow the thesis convention (edges black, triangles blue, tetrahedra red).
 A **Render** control switches between *skeleton* (nodes + edges — clearest for seeing a
@@ -143,7 +150,7 @@ data/diabetes.csv    # Reaven & Miller (1979), bundled
 - [x] **F2** — Core library: Mapper from scratch (filters, cover, nerve), arbitrary-dim Rⁿ
 - [x] **F3** — Interactive Dash/Plotly app: build the simplicial complex live in 2D/3D
 - [x] **F4** — Validation: Betti numbers recover each known shape + the diabetes case study
-- [ ] **F5** — README polish + CI + Docker, wired end to end
+- [x] **F5** — README polish + CI + Docker, wired end to end
 
 ---
 
