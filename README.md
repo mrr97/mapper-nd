@@ -86,6 +86,8 @@ Pick a dataset, tune the filter / cover / clustering controls, and watch the sim
 complex rebuild — in 2D or embedded in 3D, where triangles and tetrahedra are rendered as
 surfaces and volumes. It opens on the **diabetes study**, coloured by clinical group.
 
+![Rotating the 3D simplicial complex, switching datasets, and tuning the controls live in the dashboard](docs/mapper-demo.gif)
+
 ```bash
 uv run mapper-nd dashboard    # http://127.0.0.1:8050
 ```
