@@ -1,66 +1,41 @@
 # mapper-nd
 
-> **Topological Data Analysis with the Mapper algorithm — implemented from scratch.**
-> Most Mapper implementations project to the line (R) or the plane (R²) and return a
-> **graph**. This one filters to an **arbitrary-dimensional space Rⁿ**, so the output is a
-> full **simplicial complex** (edges, triangles, tetrahedra, …), not just a 1-skeleton.
-
 [![CI](https://github.com/mrr97/mapper-nd/actions/workflows/ci.yml/badge.svg)](https://github.com/mrr97/mapper-nd/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
 
-**Status:** Complete. The engine recovers the **known topology** of every
-bundled dataset (verified by computing Betti numbers): a circle gives one loop, a sphere one
-void, a torus its two loops — and the **Reaven–Miller diabetes study** reconstructs as a
-connected tree whose two branches are the two diabetes subtypes. One command (`docker compose
-up`) validates the topology and serves the interactive app.
+Mapper turns a dataset with many measurements per observation into a map of related groups. Each node represents a group of similar observations; connections show where groups share members. This helps explore whether the data forms separate populations, branching patterns or loops, and how those structures change with the analysis settings.
 
-![Rotating the 3D simplicial complex, switching datasets, and tuning the cover/clustering controls live in the dashboard](docs/mapper-demo.gif)
+This project implements the algorithm from scratch, with an interactive app and examples ranging from geometric shapes to patient measurements. Its core supports filters in any dimension and records intersections between several groups as triangles, tetrahedra and higher-dimensional structures. The app lets you inspect the result in 2D or 3D and adjust the grouping parameters.
 
-> The interactive dashboard: pick a dataset, rotate the complex in 3D, and watch it
-> rebuild as you tune the controls. `uv run mapper-nd dashboard` (or `docker compose up`).
+## Demo
 
----
+![Rotating the 3D complex, switching datasets and adjusting parameters in the dashboard](docs/mapper-demo.gif)
 
-## What is Mapper?
+The Dash app opens on the diabetes dataset, coloured by clinical group. You can switch datasets, adjust the filter, cover and clustering settings, and rotate the result. Rendering options show the skeleton (nodes and edges), surfaces (including triangles) or solid structures (including tetrahedra).
 
-Mapper turns a point cloud into a compact shape that captures its **topology**:
+## Diabetes example
 
-1. **Filter** — project the data with a function `f: X → Rⁿ` (eccentricity, graph
-   Laplacian eigenvectors, a coordinate, …).
-2. **Cover** — cover the image with **overlapping hypercubes**.
-3. **Cluster** — cluster the points falling in each hypercube; every cluster becomes a
-   **vertex**.
-4. **Nerve** — connect vertices whose clusters share points. With an n-dimensional filter,
-   up to 2ⁿ hypercubes overlap, so the nerve contains simplices up to dimension 2ⁿ−1.
+The Reaven–Miller dataset contains 145 adults, each described by five measurements covering relative weight and glucose/insulin values. Mapper groups patients by similarity in those measurements, without using their clinical labels. Each node below represents a group of patients, and an edge means two groups share patients because the analysis uses overlapping regions.
 
-The result is a simplicial complex that approximates the shape of the data — a circle
-collapses to a loop, a sphere to a hollow shell, and (the headline demo) the
-**Reaven–Miller diabetes study** to a core with two flares, one per diabetes subtype.
+![Mapper reconstruction of the Reaven–Miller diabetes dataset, coloured by clinical group](docs/diabetes.png)
 
-## Datasets
+Colours are added afterwards using the majority clinical label in each node: Normal (amber), Chemical Diabetic (teal) and Overt Diabetic (red). With the bundled preset, the map places normal-dominated groups around a junction, with diabetic groups extending in different directions. This shows how measured similarities relate to the existing clinical groups. The `b0=1, b1=0` check confirms connectivity and no independent loops; it does not establish the branch interpretation or measure diagnostic accuracy.
 
-Self-contained and reproducible. Synthetic clouds are deterministic from a single seed;
-the diabetes study is bundled as a CSV.
+The figure can be regenerated with `uv run python scripts/render_hero.py`.
 
-| Dataset | Points | Space | Known shape |
-|---------|-------:|-------|-------------|
-| `circle` | 400 | R² | one loop (S¹) |
-| `torus` | 600 | R³ | two independent loops (S¹×S¹) |
-| `sphere` | 400 | R³ | hollow shell (S²) |
-| `diabetes` | 145 | R⁵ | central core + two flares |
+## How it works
 
-```bash
-uv sync --dev
-uv run mapper-nd datasets    # list the bundled datasets and their shapes
-```
+Mapper builds a simplicial complex from a point cloud in four steps:
 
-The synthetic manifolds are the **ground truth** for validating the algorithm (Phase 4):
-the recovered topology must match the known shape.
+1. Apply a filter `f: X → Rⁿ` to obtain a view of the data.
+2. Cover that view with overlapping hypercubes.
+3. Cluster the observations within each hypercube; each cluster becomes a vertex.
+4. Connect clusters that share observations. Multiple intersections form triangles, tetrahedra and higher-dimensional simplices, together called the nerve.
 
-## The engine
+The filter can have arbitrary output dimension. Under this hypercube cover, up to `2ⁿ` cover elements can overlap, allowing simplices of dimension up to `2ⁿ − 1`. Available filters include `Projection`, `Eccentricity`, `Statistic` and `GraphLaplacian`.
 
-The pipeline is configurable: pick a **filter**, a **cover** and a **clusterer**, then `fit`.
+The library lets you choose the filter, cover and clustering algorithm independently:
 
 ```python
 from sklearn.cluster import DBSCAN
@@ -68,122 +43,77 @@ from mapper_nd.core import Mapper, HypercubeCover, GraphLaplacian
 from mapper_nd.datasets import sphere
 
 mapper = Mapper(
-    filter=GraphLaplacian(kernel="rbf", n_components=2),  # project to R^2
-    cover=HypercubeCover(n_intervals=5, overlap=0.5),     # overlapping squares
+    filter=GraphLaplacian(kernel="rbf", n_components=2),
+    cover=HypercubeCover(n_intervals=5, overlap=0.5),
     clusterer=DBSCAN(eps=0.4, min_samples=3),
 )
 result = mapper.fit(sphere(300))
-print(result.complex.simplex_counts())      # e.g. {0: 20, 1: 67, 2: 65, 3: 17}
+print(result.complex.simplex_counts())
 print(result.complex.n_connected_components())
 ```
 
-Because the lens is 2-dimensional, the nerve contains **triangles and tetrahedra**, not just
-edges. Filters available: `Projection`, `Eccentricity`, `Statistic`, `GraphLaplacian`.
+The app positions vertices using multidimensional scaling of a Hausdorff-like distance between clusters. Edges are black, triangles blue and tetrahedra red, following the visual convention of the thesis on which the project is based.
 
-## Interactive app
+## Results and limitations
 
-Pick a dataset, tune the filter / cover / clustering controls, and watch the simplicial
-complex rebuild — in 2D or embedded in 3D, where triangles and tetrahedra are rendered as
-surfaces and volumes. It opens on the **diabetes study**, coloured by clinical group.
+The repository includes three synthetic point clouds generated from a fixed seed and the Reaven–Miller diabetes dataset, bundled as a CSV.
+
+| Dataset | Points | Input space | Structure explored |
+|---|---:|---|---|
+| `circle` | 400 | R² | One loop |
+| `torus` | 600 | R³ | Two independent loops |
+| `sphere` | 400 | R³ | A hollow shell |
+| `diabetes` | 145 | R⁵ | A central region with two branches |
+
+Validation computes Betti numbers using simplicial homology over GF(2): `b0` counts connected components, `b1` independent loops and `b2` enclosed voids. The bundled presets produce the following checked values:
+
+| Dataset | Checked Betti numbers | Result |
+|---|---|---|
+| `circle` | `b0=1, b1=1` | Pass |
+| `sphere` | `b0=1, b1=0, b2=1` | Pass |
+| `torus` | `b0=1, b1=2` | Pass |
+| `diabetes` | `b0=1, b1=0` | Pass |
+
+These checks verify selected properties at tuned presets, rather than full recovery of each dataset's topology for arbitrary parameters. In particular, the torus check covers its two loops but does not require `b2=1`. Sampling density, cover overlap and clustering settings affect the result; the torus generator samples uniformly by surface area.
+
+## Quickstart
+
+With Docker Compose installed:
 
 ```bash
-uv run mapper-nd dashboard    # http://127.0.0.1:8050
+docker compose up
 ```
 
-Or with Docker — one command validates the topology of all four datasets, then serves the app:
+Docker validates the four bundled presets, then starts the dashboard at http://localhost:8050 if validation succeeds.
+
+### Local development and CLI
+
+With Python 3.12 and uv installed:
 
 ```bash
-docker compose up    # validates 4/4 signatures, then http://localhost:8050
-```
-
-Vertices are positioned by multidimensional scaling of a Hausdorff-like distance between
-clusters; colours follow the thesis convention (edges black, triangles blue, tetrahedra red).
-A **Render** control switches between *skeleton* (nodes + edges — clearest for seeing a
-torus hole), *surface* (adds triangles — a sphere shell), and *solid* (adds tetrahedra —
-the highest-dimensional simplices).
-
-## Validation — does it recover the shape?
-
-The synthetic clouds have a topology we know in advance, so we can check the reconstruction
-objectively: run Mapper at each dataset's tuned preset and compute the **Betti numbers**
-(`b0` components, `b1` loops, `b2` voids) by simplicial homology over GF(2) — real homology,
-where a filled triangle has `b1 = 0` and a hollow one `b1 = 1`.
-
-```bash
+uv sync --dev
 uv run mapper-nd validate
+uv run mapper-nd dashboard
 ```
 
-| Dataset | Signature | Recovered Betti | Result |
-|---------|-----------|-----------------|:------:|
-| `circle` | one connected loop | `b0=1, b1=1` | ✅ |
-| `sphere` | a hollow shell (one void) | `b0=1, b1=0, b2=1` | ✅ |
-| `torus` | connected, two loops | `b0=1, b1=2` | ✅ |
-| `diabetes` | connected tree (core + two flares) | `b0=1, b1=0` | ✅ |
+The local dashboard is available at http://127.0.0.1:8050. Use `uv run mapper-nd datasets` to list the bundled datasets.
 
-Mapper is an approximation, so the torus is judged on its **signature** — a single connected
-surface carrying both loops (`b0=1, b1=2`), the feature that distinguishes a torus;
-recovering the enclosed void (`b2=1`) as well would need denser sampling. Clean reconstruction
-here relies on sampling the torus uniformly **by surface area**, not by angle. The presets
-shipped with the app are exactly these validated ones.
+## Technologies and development
 
-### The diabetes result
+Python 3.12 · NumPy · pandas · scikit-learn · Dash / Plotly · Pydantic · structlog · Typer · Docker Compose
 
-The headline case is real data. Reaven & Miller found the patients form a central core with
-two flares, each a different diabetes subtype. Mapper reconstructs precisely that: a
-**connected tree** (`b0=1, b1=0`) whose branches, coloured by clinical group, separate
-**Normal** from the **Chemical** and **Overt** diabetics — recovering the disease structure
-straight from the blood-chemistry cloud.
+Based on the author's Master's thesis in Mathematics at the University of Málaga (2022).
 
-![Mapper on the Reaven–Miller diabetes study: a connected core with two flares, coloured by clinical group — the red core and the two coloured branches are the two diabetes subtypes](docs/diabetes.png)
-
-> Regenerate this figure with `uv run python scripts/render_hero.py`.
-
-## Project layout
-
-```
-src/mapper_nd/
-  config.py          # Pydantic settings (.env)
-  log.py             # structlog setup
-  datasets/          # reproducible point clouds + the diabetes study
-  core/              # the engine: filters, cover, complex (nerve), mapper, embedding, homology
-  ui/                # Dash app: data orchestration, Plotly figures, layout
-  validation.py      # recover-the-known-topology checks (Betti signatures)
-  cli.py             # typer CLI
-tests/               # pytest
-data/diabetes.csv    # Reaven & Miller (1979), bundled
+```bash
+uv run pytest
+uv run ruff check .
+uv run ruff format --check .
 ```
 
-## Roadmap
+## Resumen en español
 
-- [x] **F1** — Repo scaffold + datasets (synthetic clouds + diabetes study)
-- [x] **F2** — Core library: Mapper from scratch (filters, cover, nerve), arbitrary-dim Rⁿ
-- [x] **F3** — Interactive Dash/Plotly app: build the simplicial complex live in 2D/3D
-- [x] **F4** — Validation: Betti numbers recover each known shape + the diabetes case study
-- [x] **F5** — README polish + CI + Docker, wired end to end
+Implementación desde cero del algoritmo Mapper para explorar la estructura de conjuntos de datos. Admite filtros en dimensión arbitraria y construye complejos simpliciales con aristas, triángulos y estructuras de mayor dimensión. Incluye una aplicación interactiva, ejemplos sintéticos y un caso con datos de diabetes. La validación comprueba propiedades topológicas concretas mediante números de Betti.
 
----
+## License
 
-## Resumen (ES)
-
-**Análisis de Datos Topológico con el algoritmo Mapper, implementado desde cero.** Mapper
-reduce una nube de puntos a un **complejo simplicial** que captura su forma topológica:
-una función filtro proyecta los datos, se recubre la imagen con **hipercubos solapados**,
-se aplica *clustering* en la preimagen de cada hipercubo (cada cluster = un vértice) y se
-conectan los vértices cuyos clusters comparten puntos (el *nervio*).
-
-**Diferenciador:** la mayoría de implementaciones proyectan a R o R² y devuelven un
-**grafo**; esta proyecta a **dimensión arbitraria Rⁿ**, generando un complejo simplicial
-completo (aristas, triángulos, tetraedros…) de dimensión hasta 2ⁿ−1. La demo estrella
-reproduce el estudio real de diabetes de **Reaven–Miller**: Mapper revela un núcleo central
-con dos "brotes", uno por cada subtipo de diabetes.
-
-**Validación:** se comprueba que la reconstrucción es correcta calculando los **números de
-Betti** (homología simplicial sobre GF(2)): círculo → 1 ciclo, esfera → 1 hueco, toro → 2
-ciclos, y la diabetes → un árbol conectado cuyos dos brazos son los dos subtipos. Los
-parámetros por defecto de la app son justamente estos, ya validados (`mapper-nd validate`).
-
-Basado en el Trabajo Fin de Máster en Matemáticas del autor (Universidad de Málaga, 2022).
-
-## Licencia
-
-MIT
+MIT.
